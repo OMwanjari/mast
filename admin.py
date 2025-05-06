@@ -9,7 +9,6 @@ import plotly.express as px
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 from collections import Counter
-from concurrent.futures import ThreadPoolExecutor
 import logging
 
 # Suppress Streamlit warnings
@@ -20,25 +19,22 @@ def load_nlp_model():
     try:
         return spacy.load("en_core_web_md")
     except OSError:
-        st.warning("Downloading spaCy model. This may take a moment...")
-        spacy.cli.download("en_core_web_md")
-        return spacy.load("en_core_web_md")
+        st.error("SpaCy model 'en_core_web_md' not found. Please ensure it is installed in the environment.")
+        raise
 
 nlp = load_nlp_model()
 
 STYLES = {
-    "page_bg_img": """
-    <style>
-    [data-testid="stAppViewContainer"] {
-      background: linear-gradient(135deg, #000000 30%, #2e2e70 100%);
-      background-size: cover;
-    }
-    [data-testid="stHeader"] {
-      background-color: rgba(0, 0, 0, 0) !important;
-    }
-    """
+    "page_bg_img": """<style>
+[data-testid="stAppViewContainer"] {
+    background: linear-gradient(135deg, #000000 30%, #2e2e70 100%);
+    background-size: cover;
 }
-
+[data-testid="stHeader"] {
+    background-color: rgba(0, 0, 0, 0) !important;
+}
+</style>"""
+}
 
 @st.cache_data(ttl=3600)
 @st.cache_resource
@@ -658,18 +654,15 @@ def create_dashboard(df):
 #####################################################################################################################################
 def admin_function():
     st.markdown(STYLES["page_bg_img"], unsafe_allow_html=True)
-
     st.markdown("<h1 style='text-align: center;'>Interactive Resume Analyzer Dashboard</h1>", unsafe_allow_html=True)
 
     uploaded_files = st.file_uploader("Upload resumes (PDF, TXT)", type=['pdf', 'txt'], accept_multiple_files=True)
 
     if uploaded_files:
-        # Add validation to check if at least 2 files are uploaded
         if len(uploaded_files) < 2:
             st.error("Please upload at least 2 resume files to proceed with analysis.")
             return
 
-        # Use a single spinner for the entire processing block
         with st.spinner('Processing resumes...'):
             processed_data = process_multiple_pdfs(uploaded_files)
             df = pd.DataFrame(processed_data)
@@ -685,11 +678,3 @@ def admin_function():
 
 if __name__ == "__main__":
     admin_function()
-
-
-
-
-
-
-
-
