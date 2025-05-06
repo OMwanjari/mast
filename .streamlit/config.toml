@@ -1,0 +1,6 @@
+[theme]
+primaryColor = "#6A5ACD"  # Button and interactive element color
+backgroundColor = "#070F2B"  # Main background
+secondaryBackgroundColor = "#000000"  # Sidebar background
+textColor = "#fafafa"  # Text color
+font = "sans serif"  # Font (options: 'sans serif', 'serif', 'monospace')
