@@ -1,5 +1,6 @@
 datasets==3.5.1
 firebase_admin==6.5.0
+google-generativeai
 nltk==3.9.1
 pandas==2.2.3
 pdfplumber==0.11.5
