@@ -19,3 +19,5 @@ streamlit
 streamlit_extras
 streamlit_option_menu==0.3.13
 transformers==4.51.3
+thinc
+numpy

@@ -1,7 +1,8 @@
 import io
 import re
 import PyPDF2
-#student page
+
+# Student page
 def process_single_pdf(uploaded_file):
     if uploaded_file is None:
         raise FileNotFoundError("No file uploaded")
@@ -30,7 +31,7 @@ def extract_score_and_feedback(result_text):
         match = re.search(pattern, result_text, re.IGNORECASE)
         if match:
             score = int(match.group(1))
-            if pattern.endswith('(\d+)') and score <= 10:
+            if pattern.endswith(r'(\d+)') and score <= 10:
                 score *= 10
             break
     
@@ -49,5 +50,3 @@ def extract_score_and_feedback(result_text):
             break
     
     return score, feedback
-
-
