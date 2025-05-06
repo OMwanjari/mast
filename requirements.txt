@@ -4,7 +4,7 @@ pdfplumber>=0.10.0
 spacy==3.7.2
 plotly>=5.0.0
 scikit-learn>=1.3.0
-numpy>=1.26.0  # Updated to work with Python 3.12
+numpy==1.26.4  # Must be this exact version to match spaCy's requirements
 firebase-admin>=6.2.0
 google-generativeai>=0.3.0
 nltk>=3.8.1
