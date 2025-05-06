@@ -38,7 +38,7 @@ def contact():
     with col2:
         with st.container(border=True):
             st.image("image/vivek.png")
-            st.write("Vivek Togarvar")
+            st.write("Vivek Togarwar")
     with col3:
         st.title("")  # Placeholder if needed
 
