@@ -1,6 +1,6 @@
 import streamlit as st
 import json
-from firebase_config import auth_pyrebase, save_user_data
+from firebase_config import auth_pyrebase, save_user_data, database
 
 # Helper function to add custom CSS styles
 def add_custom_css():
@@ -30,7 +30,7 @@ def add_custom_css():
     }
     
     /* Input field styles */
-    .stTextInput input {
+    .stTextInput input, .stSelectbox > div > div {
         background-color: rgba(255, 255, 255, 0.1);
         border: 1px solid rgba(255, 255, 255, 0.2);
         color: white;
@@ -41,27 +41,52 @@ def add_custom_css():
     """, unsafe_allow_html=True)
 
 # Helper function to create a new user
-def create_new_user(email, password, name):
+def create_new_user(email, password, first_name, last_name, phone, college, address):
     try:
         # Input validation before Firebase call
-        if len(name.strip()) < 2:
-            st.error("Name must be at least 2 characters long.")
+        if len(first_name.strip()) < 2 or len(last_name.strip()) < 2:
+            st.error("First and Last name must be at least 2 characters long.")
             return None
         if len(password) < 6:
             st.error("Password must be at least 6 characters long.")
+            return None
+        if not phone.strip():
+            st.error("Phone number is required.")
+            return None
+        if not college.strip():
+            st.error("College name is required.")
+            return None
+        if not address.strip():
+            st.error("Address is required.")
             return None
             
         # Create user using Firebase authentication
         user = auth_pyrebase.create_user_with_email_and_password(email, password)
         
-        # Save user data to the database
-        try:
-            save_user_data(user['localId'], name, email)
-        except Exception as db_error:
-            st.error(f"Account created but failed to save user data: {str(db_error)}")
-            return user
+        # Sign in to get the id token
+        user_auth = auth_pyrebase.sign_in_with_email_and_password(email, password)
+        id_token = user_auth['idToken']
+        
+        # Create full name from first and last name
+        full_name = f"{first_name} {last_name}"
+        
+        # Save user data to the database with the token
+        success = save_user_data(
+            user_id=user['localId'],
+            name=full_name,
+            email=email,
+            id_token=id_token,
+            phone=phone,
+            first_name=first_name,
+            last_name=last_name,
+            college=college,
+            address=address
+        )
+        
+        if not success:
+            st.error("Account created but failed to save user data. Please try logging in.")
             
-        return user
+        return user_auth  # Return the signed-in user with token
         
     except Exception as e:
         # Try to parse the error as JSON (Firebase error format)
@@ -102,24 +127,36 @@ def signup_page():
     with col2:
         st.title("Sign Up")
 
-        name = st.text_input("Name", placeholder="Enter your name")
+        first_name = st.text_input("First Name", placeholder="Enter your first name")
+        last_name = st.text_input("Last Name", placeholder="Enter your last name")
         email = st.text_input("Email", placeholder="Enter your email")
+        phone = st.text_input("Phone", placeholder="Enter your phone number")
+        college = st.text_input("College", placeholder="Enter your college name")
+        address = st.text_area("Address", placeholder="Enter your address")
         password = st.text_input("Password", placeholder="Enter your password", type="password")
 
         if st.button("Sign Up"):
             # Initial client-side validation
-            if not all([name.strip(), email.strip(), password.strip()]):
-                st.error("All fields (Name, Email, Password) are required.")
+            if not all([first_name.strip(), last_name.strip(), email.strip(), phone.strip(), college.strip(), address.strip(), password.strip()]):
+                st.error("All fields (First Name, Last Name, Email, Phone, College, Address, Password) are required.")
             else:
                 with st.spinner("Creating account..."):
-                    user = create_new_user(email, password, name)
+                    user = create_new_user(email, password, first_name, last_name, phone, college, address)
                     if user:
                         try:
                             st.success("Account created successfully!")
+                            # Create full name from first and last name
+                            full_name = f"{first_name} {last_name}"
                             st.session_state["user"] = {
                                 "localId": user['localId'],
                                 "email": email,
-                                "name": name
+                                "name": full_name,
+                                "first_name": first_name,
+                                "last_name": last_name,
+                                "phone": phone,
+                                "college": college,
+                                "address": address,
+                                "idToken": user['idToken']  # Store the token in session state
                             }
                             st.session_state["selected_page"] = "Student"
                             st.rerun()
